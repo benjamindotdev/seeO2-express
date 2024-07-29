@@ -4,25 +4,24 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  next();
+app.get("/trips", (req, res) => {
+  res.send(req.body);
 });
 
-app.get("/trips", (req, res) => {
-  res.json({});
+app.get("/users", (req, res) => {
+  res.send(req.body);
 });
 
 app.post("/trips", (req, res) => {
-  res.json({});
+  res.send(req.body);
 });
 
 app.get("/trips/:tripId", (req, res) => {
-  res.json({});
+  res.send(req.params);
 });
 
 app.delete("/trips/:tripId", (req, res) => {
-  res.json({});
+  res.send(req.params);
 });
 
 const port = process.env.PORT || 5005;
