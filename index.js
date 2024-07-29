@@ -1,8 +1,13 @@
 require("dotenv").config();
 const express = require("express");
+const db = require("./db.json");
 
 const app = express();
 app.use(express.json());
+
+app.get("https://seeo2-backend-production.up.railway.app/", (req, res) => {
+  res.send("Hello World!");
+});
 
 app.get("/trips", (req, res) => {
   res.send(req.body);
@@ -10,6 +15,16 @@ app.get("/trips", (req, res) => {
 
 app.get("/users", (req, res) => {
   res.send(req.body);
+});
+app.get("/users/:id", (req, res) => {
+  axios
+    .get(`/users/${userId}`)
+    .then((response) => {
+      setUsers(response.data);
+    })
+    .catch((error) => {
+      console.log(error.response);
+    });
 });
 
 app.post("/trips", (req, res) => {
@@ -24,7 +39,7 @@ app.delete("/trips/:tripId", (req, res) => {
   res.send(req.params);
 });
 
-const port = process.env.PORT || 5005;
+const port = process.env.PORT;
 
 app.listen(port, (err) => {
   if (err) {
