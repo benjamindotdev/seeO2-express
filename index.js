@@ -5,7 +5,7 @@ const db = require("./db.json");
 const app = express();
 app.use(express.json());
 
-app.get("https://seeo2-backend-production.up.railway.app/", (req, res) => {
+app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
