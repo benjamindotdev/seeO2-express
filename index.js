@@ -30,6 +30,7 @@ app.get("/users/:id", (req, res) => {
 });
 
 app.post("/trips", (req, res) => {
+  db.trips.push(req.body);
   res.send(req.body);
 });
 
