@@ -1,4 +1,5 @@
 require("dotenv").config();
+var cors = require("cors");
 const express = require("express");
 const db = require("./db.json");
 
@@ -8,15 +9,15 @@ app.use(express.json());
 app.use(cors());
 
 app.get("/", (req, res) => {
-  res.send(db);
+  res.json(db);
 });
 
 app.get("/trips", (req, res) => {
-  res.send(db.trips);
+  res.json(db.trips);
 });
 
 app.get("/users", (req, res) => {
-  res.send(db.users);
+  res.json(db.users);
 });
 app.get("/users/:id", (req, res) => {
   const userId = req.params.id;
