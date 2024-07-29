@@ -5,6 +5,8 @@ const db = require("./db.json");
 const app = express();
 app.use(express.json());
 
+app.use(cors());
+
 app.get("/", (req, res) => {
   res.send(db);
 });
