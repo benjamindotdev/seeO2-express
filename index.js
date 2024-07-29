@@ -6,25 +6,24 @@ const app = express();
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send(db);
 });
 
 app.get("/trips", (req, res) => {
-  res.send(req.body);
+  res.send(db.trips);
 });
 
 app.get("/users", (req, res) => {
-  res.send(req.body);
+  res.send(db.users);
 });
 app.get("/users/:id", (req, res) => {
-  axios
-    .get(`/users/${userId}`)
-    .then((response) => {
-      setUsers(response.data);
-    })
-    .catch((error) => {
-      console.log(error.response);
-    });
+  const userId = req.params.id;
+  const user = db.users.find((u) => u.id === userId);
+  if (user) {
+    res.send(user);
+  } else {
+    res.status(404).send({ error: "User not found" });
+  }
 });
 
 app.post("/trips", (req, res) => {
@@ -32,11 +31,24 @@ app.post("/trips", (req, res) => {
 });
 
 app.get("/trips/:tripId", (req, res) => {
-  res.send(req.params);
+  const tripId = req.params.tripId;
+  const trip = db.trips.find((t) => t.id === tripId);
+  if (trip) {
+    res.send(trip);
+  } else {
+    res.status(404).send({ error: "Trip not found" });
+  }
 });
 
 app.delete("/trips/:tripId", (req, res) => {
-  res.send(req.params);
+  const tripId = req.params.tripId;
+  const tripIndex = db.trips.findIndex((t) => t.id === tripId);
+  if (tripIndex !== -1) {
+    db.trips.splice(tripIndex, 1);
+    res.send({ message: "Trip deleted" });
+  } else {
+    res.status(404).send({ error: "Trip not found" });
+  }
 });
 
 const port = process.env.PORT;
