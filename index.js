@@ -68,7 +68,6 @@ app.post("/result", async (req, res) => {
         time: res.data.paths[0].time / 60000,
         profile: requests[index].profile,
       }));
-      //res.send(newResults);
 
       const newTrip = {
         id: db.trips.length + 1,
@@ -91,7 +90,8 @@ app.post("/result", async (req, res) => {
       };
       console.log(newTrip);
       db.trips.push(newTrip);
-      res.send(newTrip);
+      res.send(newResults);
+      //res.send(newTrip);
     })
     .catch((error) => {
       console.log(error.response);
