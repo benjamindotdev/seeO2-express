@@ -8,6 +8,33 @@ app.use(express.json());
 
 app.use(cors());
 
+const ironhack = {
+  lat: 52.53308,
+  lng: 13.45321,
+};
+
+const types = [
+  {
+    profile: "car",
+    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=car`,
+  },
+  {
+    profile: "bike",
+    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=bike`,
+  },
+  {
+    profile: "foot",
+    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=foot`,
+  },
+];
+
+const requests = types.map((type) => {
+  return {
+    request: axios.get(type.url),
+    profile: type.profile,
+  };
+});
+
 app.get("/", (req, res) => {
   res.json(db);
 });
@@ -19,6 +46,7 @@ app.get("/trips", (req, res) => {
 app.get("/users", (req, res) => {
   res.json(db.users);
 });
+
 app.get("/users/:id", (req, res) => {
   const userId = req.params.id;
   const user = db.users.find((u) => u.id === userId);
@@ -27,6 +55,60 @@ app.get("/users/:id", (req, res) => {
   } else {
     res.status(404).send({ error: "User not found" });
   }
+});
+
+app.post("/result", (req, res) => {
+  axios
+    .all(requests.map((req) => req.request))
+    .then((responses) => {
+      const newResults = responses.map((res, index) => ({
+        destination: destination,
+        distance: (res.data.paths[0].distance / 1000).toFixed(2),
+        time: res.data.paths[0].time / 60000,
+        profile: requests[index].profile,
+      }));
+      console.log(newResults);
+    })
+    .catch((error) => {
+      console.log(error.response);
+    });
+  const { lat, lng, destination } = req.body;
+  const newTrip = {
+    id: db.trips.length + 1,
+    origin: {
+      name: "Ironhack, Berlin",
+      lat: ironhack.lat,
+      lng: ironhack.lng,
+    },
+    destination: {
+      name: destination,
+      lat,
+      lng,
+    },
+    profiles: [
+      {
+        profile: "car",
+        distance: newResults["car"].distance,
+        time: newResults["car"].time,
+        emissions: newResults["car"].distance * emissions[0]["car"],
+      },
+      {
+        profile: "bike",
+        distance: newResults["bike"].distance,
+        time: newResults["bike"].time,
+        emissions: newResults["bike"].distance * emissions[0]["bike"],
+      },
+      {
+        profile: "foot",
+        distance: newResults["foot"].distance,
+        time: newResults["foot"].time,
+        emissions: newResults["foot"].distance * emissions[0]["foot"],
+      },
+    ],
+  };
+  console.log(newTrip);
+  db.trips.push(newTrip);
+  res.send(newTrip);
 });
 
 app.post("/trips", (req, res) => {
