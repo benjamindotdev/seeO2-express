@@ -1,9 +1,24 @@
 require("dotenv").config();
 var cors = require("cors");
 const express = require("express");
-const db = require("./db.json");
 const axios = require("axios");
 const emissions = require("./emissions.json");
+
+const mongoose = require("mongoose");
+
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const User = require("./models/User");
+const Trip = require("./models/Trip");
+
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", () => {
+  console.log("Connected to MongoDB");
+});
 
 const app = express();
 app.use(express.json());
@@ -14,25 +29,40 @@ app.get("/", (req, res) => {
   res.json(db);
 });
 
-app.get("/trips", (req, res) => {
-  res.json(db.trips);
-});
-
-app.get("/users", (req, res) => {
-  res.json(db.users);
-});
-
-app.get("/users/:id", (req, res) => {
-  const userId = req.params.id;
-  const user = db.users.find((u) => u.id === userId);
-  if (user) {
-    res.send(user);
-  } else {
-    res.status(404).send({ error: "User not found" });
+app.get("/trips", async (req, res) => {
+  try {
+    const trips = await Trip.find();
+    res.json(trips);
+  } catch (error) {
+    res.status(500).send({ error: "An error occurred while fetching trips" });
   }
 });
 
-app.post("/result", (req, res) => {
+app.get("/users", async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).send({ error: "An error occurred while fetching users" });
+  }
+});
+
+app.get("/users/:id", async (req, res) => {
+  try {
+    const user = await User.findOne({ id: req.params.id });
+    if (user) {
+      res.send(user);
+    } else {
+      res.status(404).send({ error: "User not found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ error: "An error occurred while fetching the user" });
+  }
+});
+
+app.post("/result", async (req, res) => {
   const ironhack = {
     lat: "52.53308",
     lng: "13.45321",
@@ -73,7 +103,7 @@ app.post("/result", (req, res) => {
     })
     .then((response) => {
       const profiles = [...response];
-      const newTrip = {
+      const newTrip = new Trip({
         id: db.trips.length + 1,
         origin: {
           name: "Ironhack, Berlin",
@@ -91,8 +121,8 @@ app.post("/result", (req, res) => {
           time: result.time,
           emissions: result.distance * emissions[0][result.profile],
         })),
-      };
-      db.trips.push(newTrip);
+      });
+      newTrip.save();
       res.send(newTrip);
     })
     .catch((error) => {
@@ -122,24 +152,33 @@ app.post("/trips", (req, res) => {
   res.send(req.body);
 });
 
-app.get("/trips/:tripId", (req, res) => {
-  const tripId = req.params.tripId;
-  const trip = db.trips.find((t) => t.id === tripId);
-  if (trip) {
-    res.send(trip);
-  } else {
-    res.status(404).send({ error: "Trip not found" });
+app.get("/trips/:tripId", async (req, res) => {
+  try {
+    const trip = await Trip.findOne({ id: req.params.tripId });
+    if (trip) {
+      res.send(trip);
+    } else {
+      res.status(404).send({ error: "Trip not found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ error: "An error occurred while fetching the trip" });
   }
 });
 
-app.delete("/trips/:tripId", (req, res) => {
-  const tripId = req.params.tripId;
-  const tripIndex = db.trips.findIndex((t) => t.id === tripId);
-  if (tripIndex !== -1) {
-    db.trips.splice(tripIndex, 1);
-    res.send({ message: "Trip deleted" });
-  } else {
-    res.status(404).send({ error: "Trip not found" });
+app.delete("/trips/:tripId", async (req, res) => {
+  try {
+    const trip = await Trip.findOneAndDelete({ id: req.params.tripId });
+    if (trip) {
+      res.send({ message: "Trip deleted" });
+    } else {
+      res.status(404).send({ error: "Trip not found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ error: "An error occurred while deleting the trip" });
   }
 });
 
