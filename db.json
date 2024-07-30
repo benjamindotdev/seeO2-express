@@ -1,0 +1,17 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Benjamin"
+    },
+    {
+      "id": 2,
+      "name": "Senanu"
+    },
+    {
+      "id": 3,
+      "name": "Omar"
+    }
+  ],
+  "trips": []
+}
