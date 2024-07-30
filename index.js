@@ -92,20 +92,27 @@ app.post("/result", (req, res) => {
           emissions: result.distance * emissions[0][result.profile],
         })),
       };
-      return axios.post(
-        "https://seeo2-backend-production.up.railway.app/trips",
-        newTrip
-      );
-    })
-    .then((response) => {
-      db.trips.push(response.data);
-      res.send(response.data);
+      db.trips.push(newTrip);
+      res.send(newTrip);
     })
     .catch((error) => {
       console.log(error.response);
       res
         .status(500)
         .send({ error: "An error occurred while processing the request" });
+    });
+});
+
+app.post("/dashboard", (req, res) => {
+  axios
+    .get(
+      `https://graphhopper.com/api/1/geocode?q=${destination}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}`
+    )
+    .then((response) => {
+      res.send(response.data.hits);
+    })
+    .catch((error) => {
+      console.log(error.response);
     });
 });
 
