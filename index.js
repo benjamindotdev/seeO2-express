@@ -67,7 +67,7 @@ app.post("/result", (req, res) => {
         time: res.data.paths[0].time / 60000,
         profile: requests[index].profile,
       }));
-      console.log(newResults);
+      res.send(newResults);
     })
     .catch((error) => {
       console.log(error.response);
