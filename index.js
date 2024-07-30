@@ -92,8 +92,14 @@ app.post("/result", (req, res) => {
           emissions: result.distance * emissions[0][result.profile],
         })),
       };
-      db.trips.push(newTrip);
-      res.send(newTrip);
+      return axios.post(
+        "https://seeo2-backend-production.up.railway.app/trips",
+        newTrip
+      );
+    })
+    .then((response) => {
+      db.trips.push(response.data);
+      res.send(response.data);
     })
     .catch((error) => {
       console.log(error.response);
