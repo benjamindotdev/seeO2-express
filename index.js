@@ -16,15 +16,15 @@ const ironhack = {
 const types = [
   {
     profile: "car",
-    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=car`,
+    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=car`,
   },
   {
     profile: "bike",
-    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=bike`,
+    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=bike`,
   },
   {
     profile: "foot",
-    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=foot`,
+    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=foot`,
   },
 ];
 
@@ -58,6 +58,7 @@ app.get("/users/:id", (req, res) => {
 });
 
 app.post("/result", (req, res) => {
+  const { lat, lng, destination } = req.body;
   axios
     .all(requests.map((req) => req.request))
     .then((responses) => {
@@ -72,7 +73,7 @@ app.post("/result", (req, res) => {
     .catch((error) => {
       console.log(error.response);
     });
-  const { lat, lng, destination } = req.body;
+
   const newTrip = {
     id: db.trips.length + 1,
     origin: {
