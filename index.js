@@ -31,7 +31,7 @@ app.get("/users/:id", (req, res) => {
   }
 });
 
-app.post("/result", (req, res) => {
+app.post("/result", async (req, res) => {
   const ironhack = {
     lat: 52.53308,
     lng: 13.45321,
@@ -59,7 +59,7 @@ app.post("/result", (req, res) => {
     };
   });
 
-  axios
+  await axios
     .all(requests.map((req) => req.request))
     .then((responses) => {
       const newResults = responses.map((res, index) => ({
