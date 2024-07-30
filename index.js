@@ -59,8 +59,6 @@ app.post("/result", async (req, res) => {
     };
   });
 
-  const profiles = [];
-
   await axios
     .all(requests.map((req) => req.request))
     .then((responses) => {
@@ -70,11 +68,11 @@ app.post("/result", async (req, res) => {
         time: res.data.paths[0].time / 60000,
         profile: requests[index].profile,
       }));
-      profiles = [...newResults];
-      res.send(newResults);
+      return newResults;
     })
     .then((response) => {
       console.log(response);
+      const profiles = [...response];
       const newTrip = {
         id: db.trips.length + 1,
         origin: {
@@ -96,7 +94,7 @@ app.post("/result", async (req, res) => {
       };
       console.log(newTrip);
       db.trips.push(newTrip);
-      //res.send(newTrip);
+      res.send(newTrip);
     })
     .catch((error) => {
       console.log(error.response);
