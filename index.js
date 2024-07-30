@@ -3,6 +3,7 @@ var cors = require("cors");
 const express = require("express");
 const db = require("./db.json");
 const axios = require("axios");
+const emissions = require("./emissions.json");
 
 const app = express();
 app.use(express.json());
