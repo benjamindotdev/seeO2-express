@@ -8,33 +8,6 @@ app.use(express.json());
 
 app.use(cors());
 
-const ironhack = {
-  lat: 52.53308,
-  lng: 13.45321,
-};
-
-const types = [
-  {
-    profile: "car",
-    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=car`,
-  },
-  {
-    profile: "bike",
-    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=bike`,
-  },
-  {
-    profile: "foot",
-    url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=foot`,
-  },
-];
-
-const requests = types.map((type) => {
-  return {
-    request: axios.get(type.url),
-    profile: type.profile,
-  };
-});
-
 app.get("/", (req, res) => {
   res.json(db);
 });
@@ -59,6 +32,28 @@ app.get("/users/:id", (req, res) => {
 
 app.post("/result", (req, res) => {
   const { lat, lng, destination } = req.body;
+  const types = [
+    {
+      profile: "car",
+      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=car`,
+    },
+    {
+      profile: "bike",
+      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=bike`,
+    },
+    {
+      profile: "foot",
+      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=foot`,
+    },
+  ];
+
+  const requests = types.map((type) => {
+    return {
+      request: axios.get(type.url),
+      profile: type.profile,
+    };
+  });
+
   axios
     .all(requests.map((req) => req.request))
     .then((responses) => {
@@ -78,8 +73,8 @@ app.post("/result", (req, res) => {
     id: db.trips.length + 1,
     origin: {
       name: "Ironhack, Berlin",
-      lat: ironhack.lat,
-      lng: ironhack.lng,
+      lat: 52.53308,
+      lng: 13.45321,
     },
     destination: {
       name: destination,
