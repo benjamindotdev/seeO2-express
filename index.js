@@ -39,15 +39,15 @@ app.post("/result", (req, res) => {
   const types = [
     {
       profile: "car",
-      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=car`,
+      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=car`,
     },
     {
       profile: "bike",
-      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=bike`,
+      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=bike`,
     },
     {
       profile: "foot",
-      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${GRAPHHOPPER_API_KEY}&profile=foot`,
+      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=foot`,
     },
   ];
 
