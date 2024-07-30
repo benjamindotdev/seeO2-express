@@ -69,47 +69,36 @@ app.post("/result", async (req, res) => {
         profile: requests[index].profile,
       }));
       res.send(newResults);
+
+      const newTrip = {
+        id: db.trips.length + 1,
+        origin: {
+          name: "Ironhack, Berlin",
+          lat: ironhack.lat,
+          lng: ironhack.lng,
+        },
+        destination: {
+          name: destination,
+          lat,
+          lng,
+        },
+        profiles: newResults.map((result) => ({
+          profile: result.profile,
+          distance: result.distance,
+          time: result.time,
+          emissions: result.distance * emissions[0][result.profile],
+        })),
+      };
+      console.log(newTrip);
+      db.trips.push(newTrip);
+      res.send(newTrip);
     })
     .catch((error) => {
       console.log(error.response);
+      res
+        .status(500)
+        .send({ error: "An error occurred while processing the request" });
     });
-
-  const newTrip = {
-    id: db.trips.length + 1,
-    origin: {
-      name: "Ironhack, Berlin",
-      lat: ironhack.lat,
-      lng: ironhack.lng,
-    },
-    destination: {
-      name: destination,
-      lat,
-      lng,
-    },
-    profiles: [
-      {
-        profile: "car",
-        distance: newResults["car"].distance,
-        time: newResults["car"].time,
-        emissions: newResults["car"].distance * emissions[0]["car"],
-      },
-      {
-        profile: "bike",
-        distance: newResults["bike"].distance,
-        time: newResults["bike"].time,
-        emissions: newResults["bike"].distance * emissions[0]["bike"],
-      },
-      {
-        profile: "foot",
-        distance: newResults["foot"].distance,
-        time: newResults["foot"].time,
-        emissions: newResults["foot"].distance * emissions[0]["foot"],
-      },
-    ],
-  };
-  console.log(newTrip);
-  db.trips.push(newTrip);
-  res.send(newTrip);
 });
 
 app.post("/trips", (req, res) => {
