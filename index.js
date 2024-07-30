@@ -74,6 +74,7 @@ app.post("/result", async (req, res) => {
       res.send(newResults);
     })
     .then((response) => {
+      console.log(response);
       const newTrip = {
         id: db.trips.length + 1,
         origin: {
