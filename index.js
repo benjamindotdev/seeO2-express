@@ -34,8 +34,8 @@ app.get("/users/:id", (req, res) => {
 
 app.post("/result", async (req, res) => {
   const ironhack = {
-    lat: 52.53308,
-    lng: 13.45321,
+    lat: "52.53308",
+    lng: "13.45321",
   };
   const { lat, lng, destination } = req.body;
   const types = [
@@ -102,6 +102,9 @@ app.post("/result", async (req, res) => {
       res
         .status(500)
         .send({ error: "An error occurred while processing the request" });
+    })
+    .finally(() => {
+      console.log("Request completed");
     });
 });
 
