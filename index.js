@@ -147,9 +147,13 @@ app.post("/dashboard", (req, res) => {
     });
 });
 
-app.post("/trips", (req, res) => {
-  db.trips.push(req.body);
-  res.send(req.body);
+app.get("/trips", async (req, res) => {
+  try {
+    const trips = await Trip.find();
+    res.json(trips);
+  } catch (error) {
+    res.status(500).send({ error: "An error occurred while fetching trips" });
+  }
 });
 
 app.get("/trips/:tripId", async (req, res) => {
