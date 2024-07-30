@@ -104,6 +104,7 @@ app.post("/result", (req, res) => {
 });
 
 app.post("/dashboard", (req, res) => {
+  const { destination } = req.body;
   axios
     .get(
       `https://graphhopper.com/api/1/geocode?q=${destination}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}`
