@@ -31,6 +31,10 @@ app.get("/users/:id", (req, res) => {
 });
 
 app.post("/result", (req, res) => {
+  const ironhack = {
+    lat: 52.53308,
+    lng: 13.45321,
+  };
   const { lat, lng, destination } = req.body;
   const types = [
     {
@@ -73,8 +77,8 @@ app.post("/result", (req, res) => {
     id: db.trips.length + 1,
     origin: {
       name: "Ironhack, Berlin",
-      lat: 52.53308,
-      lng: 13.45321,
+      lat: ironhack.lat,
+      lng: ironhack.lng,
     },
     destination: {
       name: destination,
