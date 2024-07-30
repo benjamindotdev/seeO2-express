@@ -95,16 +95,13 @@ app.post("/result", async (req, res) => {
       };
       console.log(newTrip);
       db.trips.push(newTrip);
-      return res.send(newTrip);
+      res.send(newTrip);
     })
     .catch((error) => {
       console.log(error.response);
       res
         .status(500)
         .send({ error: "An error occurred while processing the request" });
-    })
-    .finally(() => {
-      console.log("Request completed");
     });
 });
 
