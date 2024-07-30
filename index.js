@@ -68,7 +68,7 @@ app.post("/result", async (req, res) => {
         time: res.data.paths[0].time / 60000,
         profile: requests[index].profile,
       }));
-      res.send(newResults);
+      //res.send(newResults);
 
       const newTrip = {
         id: db.trips.length + 1,
