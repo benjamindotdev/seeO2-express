@@ -72,7 +72,6 @@ app.post("/result", (req, res) => {
       return newResults;
     })
     .then((response) => {
-      console.log(response);
       const profiles = [...response];
       const newTrip = {
         id: db.trips.length + 1,
@@ -93,7 +92,6 @@ app.post("/result", (req, res) => {
           emissions: result.distance * emissions[0][result.profile],
         })),
       };
-      console.log(newTrip);
       db.trips.push(newTrip);
       res.send(newTrip);
     })
