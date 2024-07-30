@@ -91,7 +91,7 @@ app.post("/result", async (req, res) => {
       console.log(newTrip);
       db.trips.push(newTrip);
       res.send(newResults);
-      //res.send(newTrip);
+      res.send(newTrip);
     })
     .catch((error) => {
       console.log(error.response);
