@@ -62,23 +62,25 @@ app.get("/users/:id", async (req, res) => {
 });
 
 app.post("/result", async (req, res) => {
-  const ironhack = {
+  const { lat, lng, destination } = req.body;
+  const origin = {
+    name: "Ironhack, Berlin",
     lat: "52.53308",
     lng: "13.45321",
   };
-  const { lat, lng, destination } = req.body;
+
   const types = [
     {
       profile: "car",
-      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=car`,
+      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=car`,
     },
     {
       profile: "bike",
-      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=bike`,
+      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=bike`,
     },
     {
       profile: "foot",
-      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=foot`,
+      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=foot`,
     },
   ];
 
@@ -101,12 +103,8 @@ app.post("/result", async (req, res) => {
     }));
 
     const newTrip = new Trip({
-      _id: new mongoose.Types.ObjectId(), // Generate a new ObjectId
-      origin: {
-        name: "Ironhack, Berlin",
-        lat: ironhack.lat,
-        lng: ironhack.lng,
-      },
+      _id: new mongoose.Types.ObjectId(),
+      origin,
       destination: {
         name: destination,
         lat,
