@@ -62,7 +62,7 @@ app.get("/users/:id", async (req, res) => {
   }
 });
 
-app.post("/result", async (req, res) => {
+app.post("/result", (req, res) => {
   const ironhack = {
     lat: "52.53308",
     lng: "13.45321",
