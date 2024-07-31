@@ -1,6 +1,6 @@
 require("dotenv").config();
-var cors = require("cors");
 const express = require("express");
+const cors = require("cors");
 const axios = require("axios");
 const emissions = require("./emissions.json");
 
@@ -65,24 +65,15 @@ app.post("/result", async (req, res) => {
     lng: "13.45321",
   };
 
-  const types = [
-    {
-      profile: "car",
-      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${origin.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=car`,
-    },
-    {
-      profile: "bike",
-      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${origin.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=bike`,
-    },
-    {
-      profile: "foot",
-      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${origin.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=foot`,
-    },
-  ];
+  const types = ["foot", "bike", "car"];
 
   try {
     const responses = await Promise.all(
-      types.map((type) => axios.get(type.url))
+      types.map((type) =>
+        axios.get(
+          `https://graphhopper.com/api/1/route?point=${origin.lat},${origin.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=${type}`
+        )
+      )
     );
     const profiles = responses.map((res, index) => ({
       distance: (res.data.paths[0].distance / 1000).toFixed(2),
@@ -92,37 +83,6 @@ app.post("/result", async (req, res) => {
         (res.data.paths[0].distance / 1000) *
         emissions[0][types[index].profile],
     }));
-
-    //  [
-    //   {
-    //     destination: 'Leipzig',
-    //     distance: '193.63',
-    //     time: 129.4234,
-    //     profile: 'car'
-    //   },
-    //   {
-    //     destination: 'Leipzig',
-    //     distance: '187.05',
-    //     time: 639.0500666666667,
-    //     profile: 'bike'
-    //   },
-    //   {
-    //     destination: 'Leipzig',
-    //     distance: '176.78',
-    //     time: 2126.86615,
-    //     profile: 'foot'
-    //   }
-    // ]
-
-    // console.log("newResults.length =", newResults.length);
-    // console.log(newResults);
-
-    // const profiles = newResults.map((result) => ({
-    //   profile: result.profile,
-    //   distance: result.distance,
-    //   time: result.time,
-    //   emissions: result.distance * emissions[0][result.profile],
-    // }));
 
     const newTrip = new Trip({
       _id: new mongoose.Types.ObjectId(),
