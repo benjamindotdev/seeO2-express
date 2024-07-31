@@ -99,12 +99,10 @@ app.post("/result", async (req, res) => {
         time: res.data.paths[0].time / 60000,
         profile: requests[index].profile,
       }));
-      console.log("This is ", newResults);
       return newResults;
     })
     .then((response) => {
       const profiles = [...response];
-      console.log("This is", profiles);
       const newTrip = new Trip({
         origin: {
           name: "Ironhack, Berlin",
@@ -123,9 +121,7 @@ app.post("/result", async (req, res) => {
           emissions: result.distance * emissions[0][result.profile],
         })),
       });
-      console.log("This is", newTrip);
       newTrip._id = new mongoose.Types.ObjectId();
-      console.log("This is", newTrip, "with id");
       newTrip.save();
       res.send(newTrip);
     })
