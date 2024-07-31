@@ -123,7 +123,7 @@ app.post("/result", async (req, res) => {
       });
       newTrip._id = new mongoose.Types.ObjectId();
       newTrip.save();
-      res.send(newTrip);
+      res.status(201).send(newTrip);
     })
     .catch((error) => {
       console.log(error.response);
