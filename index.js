@@ -65,7 +65,7 @@ app.post("/result", async (req, res) => {
     lng: "13.45321",
   };
 
-  const types = ["foot", "bike", "car"];
+  const types = ["car", "bike", "foot"];
 
   try {
     const responses = await Promise.all(
@@ -78,10 +78,9 @@ app.post("/result", async (req, res) => {
     const profiles = responses.map((res, index) => ({
       distance: (res.data.paths[0].distance / 1000).toFixed(2),
       time: res.data.paths[0].time / 60000,
-      profile: types[index].profile,
+      profile: types[index],
       emissions:
-        (res.data.paths[0].distance / 1000) *
-        emissions[0][types[index].profile],
+        (res.data.paths[0].distance / 1000) * emissions[0][types[index]],
     }));
 
     const newTrip = new Trip({
