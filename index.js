@@ -84,10 +84,13 @@ app.post("/result", async (req, res) => {
     const responses = await Promise.all(
       types.map((type) => axios.get(type.url))
     );
-    const newResults = responses.map((res, index) => ({
+    const profiles = responses.map((res, index) => ({
       distance: (res.data.paths[0].distance / 1000).toFixed(2),
       time: res.data.paths[0].time / 60000,
       profile: types[index].profile,
+      emissions:
+        (res.data.paths[0].distance / 1000) *
+        emissions[0][types[index].profile],
     }));
 
     //  [
@@ -111,15 +114,15 @@ app.post("/result", async (req, res) => {
     //   }
     // ]
 
-    console.log("newResults.length =", newResults.length);
-    console.log(newResults);
+    // console.log("newResults.length =", newResults.length);
+    // console.log(newResults);
 
-    const profiles = newResults.map((result) => ({
-      profile: result.profile,
-      distance: result.distance,
-      time: result.time,
-      emissions: result.distance * emissions[0][result.profile],
-    }));
+    // const profiles = newResults.map((result) => ({
+    //   profile: result.profile,
+    //   distance: result.distance,
+    //   time: result.time,
+    //   emissions: result.distance * emissions[0][result.profile],
+    // }));
 
     const newTrip = new Trip({
       _id: new mongoose.Types.ObjectId(),
