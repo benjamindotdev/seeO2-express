@@ -85,11 +85,31 @@ app.post("/result", async (req, res) => {
       types.map((type) => axios.get(type.url))
     );
     const newResults = responses.map((res, index) => ({
-      destination: destination,
       distance: (res.data.paths[0].distance / 1000).toFixed(2),
       time: res.data.paths[0].time / 60000,
       profile: types[index].profile,
     }));
+
+    //  [
+    //   {
+    //     destination: 'Leipzig',
+    //     distance: '193.63',
+    //     time: 129.4234,
+    //     profile: 'car'
+    //   },
+    //   {
+    //     destination: 'Leipzig',
+    //     distance: '187.05',
+    //     time: 639.0500666666667,
+    //     profile: 'bike'
+    //   },
+    //   {
+    //     destination: 'Leipzig',
+    //     distance: '176.78',
+    //     time: 2126.86615,
+    //     profile: 'foot'
+    //   }
+    // ]
 
     console.log("newResults.length =", newResults.length);
     console.log(newResults);
