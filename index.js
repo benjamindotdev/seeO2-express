@@ -92,6 +92,7 @@ app.post("/result", async (req, res) => {
     }));
 
     console.log("newResults.length =", newResults.length);
+    console.log(newResults);
 
     const profiles = newResults.map((result) => ({
       profile: result.profile,
