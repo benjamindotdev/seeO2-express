@@ -11,8 +11,8 @@ mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true,
 });
 
-const User = require("./models/User");
-const Trip = require("./models/Trip");
+const User = require("./models/User.model");
+const Trip = require("./models/Trip.model");
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -22,11 +22,10 @@ db.once("open", () => {
 
 const app = express();
 app.use(express.json());
-
 app.use(cors());
 
 app.get("/", (req, res) => {
-  res.json(db);
+  res.json({ db: "seeO2-backend" });
 });
 
 app.get("/trips", async (req, res) => {
@@ -62,7 +61,7 @@ app.get("/users/:id", async (req, res) => {
   }
 });
 
-app.post("/result", (req, res) => {
+app.post("/result", async (req, res) => {
   const ironhack = {
     lat: "52.53308",
     lng: "13.45321",
@@ -83,76 +82,61 @@ app.post("/result", (req, res) => {
     },
   ];
 
-  const requests = types.map((type) => {
-    return {
-      request: axios.get(type.url),
-      profile: type.profile,
-    };
-  });
-
-  axios
-    .all(requests.map((req) => req.request))
-    .then((responses) => {
-      const newResults = responses.map((res, index) => ({
-        destination: destination,
-        distance: (res.data.paths[0].distance / 1000).toFixed(2),
-        time: res.data.paths[0].time / 60000,
-        profile: requests[index].profile,
-      }));
-      return newResults;
-    })
-    .then((response) => {
-      const profiles = [...response];
-      const newTrip = new Trip({
-        origin: {
-          name: "Ironhack, Berlin",
-          lat: ironhack.lat,
-          lng: ironhack.lng,
-        },
-        destination: {
-          name: destination,
-          lat,
-          lng,
-        },
-        profiles: profiles.map((result) => ({
-          profile: result.profile,
-          distance: result.distance,
-          time: result.time,
-          emissions: result.distance * emissions[0][result.profile],
-        })),
-      });
-      newTrip._id = new mongoose.Types.ObjectId();
-      newTrip.save();
-      res.status(201).send(newTrip);
-    })
-    .catch((error) => {
-      console.log(error.response);
-      res
-        .status(500)
-        .send({ error: "An error occurred while processing the request" });
-    });
-});
-
-app.post("/dashboard", (req, res) => {
-  const { destination } = req.body;
-  axios
-    .get(
-      `https://graphhopper.com/api/1/geocode?q=${destination}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}`
-    )
-    .then((response) => {
-      res.send(response.data.hits);
-    })
-    .catch((error) => {
-      console.log(error.response);
-    });
-});
-
-app.get("/trips", async (req, res) => {
   try {
-    const trips = await Trip.find();
-    res.json(trips);
+    const responses = await Promise.all(
+      types.map((type) => axios.get(type.url))
+    );
+    const newResults = responses.map((res, index) => ({
+      destination: destination,
+      distance: (res.data.paths[0].distance / 1000).toFixed(2),
+      time: res.data.paths[0].time / 60000,
+      profile: types[index].profile,
+    }));
+
+    const profiles = newResults.map((result) => ({
+      profile: result.profile,
+      distance: result.distance,
+      time: result.time,
+      emissions: result.distance * emissions[0][result.profile],
+    }));
+
+    const newTrip = new Trip({
+      _id: new mongoose.Types.ObjectId(), // Generate a new ObjectId
+      origin: {
+        name: "Ironhack, Berlin",
+        lat: ironhack.lat,
+        lng: ironhack.lng,
+      },
+      destination: {
+        name: destination,
+        lat,
+        lng,
+      },
+      profiles,
+    });
+
+    await newTrip.save();
+    res.status(201).send(newTrip);
   } catch (error) {
-    res.status(500).send({ error: "An error occurred while fetching trips" });
+    console.log(error.response);
+    res
+      .status(500)
+      .send({ error: "An error occurred while processing the request" });
+  }
+});
+
+app.post("/dashboard", async (req, res) => {
+  const { destination } = req.body;
+  try {
+    const response = await axios.get(
+      `https://graphhopper.com/api/1/geocode?q=${destination}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}`
+    );
+    res.send(response.data.hits);
+  } catch (error) {
+    console.log(error.response);
+    res
+      .status(500)
+      .send({ error: "An error occurred while fetching geocode data" });
   }
 });
 
