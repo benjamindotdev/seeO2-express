@@ -24,10 +24,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.get("/", (req, res) => {
-  res.json({ db: "seeO2-backend" });
-});
-
 app.get("/trips", async (req, res) => {
   try {
     const trips = await Trip.find();
@@ -72,15 +68,15 @@ app.post("/result", async (req, res) => {
   const types = [
     {
       profile: "car",
-      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=car`,
+      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${origin.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=car`,
     },
     {
       profile: "bike",
-      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=bike`,
+      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${origin.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=bike`,
     },
     {
       profile: "foot",
-      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=foot`,
+      url: `https://graphhopper.com/api/1/route?point=${origin.lat},${origin.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=foot`,
     },
   ];
 
@@ -94,6 +90,8 @@ app.post("/result", async (req, res) => {
       time: res.data.paths[0].time / 60000,
       profile: types[index].profile,
     }));
+
+    console.log("newResults.length =", newResults.length);
 
     const profiles = newResults.map((result) => ({
       profile: result.profile,
