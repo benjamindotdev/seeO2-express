@@ -1,133 +1,151 @@
 require("dotenv").config();
-var cors = require("cors");
 const express = require("express");
-const db = require("./db.json");
+const cors = require("cors");
 const axios = require("axios");
 const emissions = require("./emissions.json");
 
+const mongoose = require("mongoose");
+
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const User = require("./models/User.model");
+const Trip = require("./models/Trip.model");
+
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", () => {
+  console.log("Connected to MongoDB");
+});
+
 const app = express();
 app.use(express.json());
-
 app.use(cors());
 
-app.get("/", (req, res) => {
-  res.json(db);
+app.get("/trips", async (req, res) => {
+  try {
+    const trips = await Trip.find();
+    res.json(trips);
+  } catch (error) {
+    res.status(500).send({ error: "An error occurred while fetching trips" });
+  }
 });
 
-app.get("/trips", (req, res) => {
-  res.json(db.trips);
+app.get("/users", async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).send({ error: "An error occurred while fetching users" });
+  }
 });
 
-app.get("/users", (req, res) => {
-  res.json(db.users);
-});
-
-app.get("/users/:id", (req, res) => {
-  const userId = req.params.id;
-  const user = db.users.find((u) => u.id === userId);
-  if (user) {
-    res.send(user);
-  } else {
-    res.status(404).send({ error: "User not found" });
+app.get("/users/:id", async (req, res) => {
+  try {
+    const user = await User.findOne({ id: req.params.id });
+    if (user) {
+      res.send(user);
+    } else {
+      res.status(404).send({ error: "User not found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ error: "An error occurred while fetching the user" });
   }
 });
 
 app.post("/result", async (req, res) => {
-  const ironhack = {
+  const { lat, lng, destination } = req.body;
+  const origin = {
+    name: "Ironhack, Berlin",
     lat: "52.53308",
     lng: "13.45321",
   };
-  const { lat, lng, destination } = req.body;
-  const types = [
-    {
-      profile: "car",
-      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=car`,
-    },
-    {
-      profile: "bike",
-      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=bike`,
-    },
-    {
-      profile: "foot",
-      url: `https://graphhopper.com/api/1/route?point=${ironhack.lat},${ironhack.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=foot`,
-    },
-  ];
 
-  const requests = types.map((type) => {
-    return {
-      request: axios.get(type.url),
-      profile: type.profile,
-    };
-  });
+  const types = ["car", "bike", "foot"];
 
-  await axios
-    .all(requests.map((req) => req.request))
-    .then((responses) => {
-      const newResults = responses.map((res, index) => ({
-        destination: destination,
-        distance: (res.data.paths[0].distance / 1000).toFixed(2),
-        time: res.data.paths[0].time / 60000,
-        profile: requests[index].profile,
-      }));
-      return newResults;
-    })
-    .then((response) => {
-      console.log(response);
-      const profiles = [...response];
-      const newTrip = {
-        id: db.trips.length + 1,
-        origin: {
-          name: "Ironhack, Berlin",
-          lat: ironhack.lat,
-          lng: ironhack.lng,
-        },
-        destination: {
-          name: destination,
-          lat,
-          lng,
-        },
-        profiles: profiles.map((result) => ({
-          profile: result.profile,
-          distance: result.distance,
-          time: result.time,
-          emissions: result.distance * emissions[0][result.profile],
-        })),
-      };
-      console.log(newTrip);
-      db.trips.push(newTrip);
-      res.send(newTrip);
-    })
-    .catch((error) => {
-      console.log(error.response);
-      res
-        .status(500)
-        .send({ error: "An error occurred while processing the request" });
+  try {
+    const responses = await Promise.all(
+      types.map((type) =>
+        axios.get(
+          `https://graphhopper.com/api/1/route?point=${origin.lat},${origin.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=${type}`
+        )
+      )
+    );
+    const profiles = responses.map((res, index) => ({
+      distance: (res.data.paths[0].distance / 1000).toFixed(2),
+      time: res.data.paths[0].time / 60000,
+      profile: types[index],
+      emissions:
+        (res.data.paths[0].distance / 1000) * emissions[0][types[index]],
+    }));
+
+    const newTrip = new Trip({
+      _id: new mongoose.Types.ObjectId(),
+      origin,
+      destination: {
+        name: destination,
+        lat,
+        lng,
+      },
+      profiles,
     });
-});
 
-app.post("/trips", (req, res) => {
-  db.trips.push(req.body);
-  res.send(req.body);
-});
-
-app.get("/trips/:tripId", (req, res) => {
-  const tripId = req.params.tripId;
-  const trip = db.trips.find((t) => t.id === tripId);
-  if (trip) {
-    res.send(trip);
-  } else {
-    res.status(404).send({ error: "Trip not found" });
+    await newTrip.save();
+    res.status(201).send(newTrip);
+  } catch (error) {
+    console.log(error.response);
+    res
+      .status(500)
+      .send({ error: "An error occurred while processing the request" });
   }
 });
 
-app.delete("/trips/:tripId", (req, res) => {
-  const tripId = req.params.tripId;
-  const tripIndex = db.trips.findIndex((t) => t.id === tripId);
-  if (tripIndex !== -1) {
-    db.trips.splice(tripIndex, 1);
-    res.send({ message: "Trip deleted" });
-  } else {
-    res.status(404).send({ error: "Trip not found" });
+app.post("/dashboard", async (req, res) => {
+  const { destination } = req.body;
+  try {
+    const response = await axios.get(
+      `https://graphhopper.com/api/1/geocode?q=${destination}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}`
+    );
+    res.send(response.data.hits);
+  } catch (error) {
+    console.log(error.response);
+    res
+      .status(500)
+      .send({ error: "An error occurred while fetching geocode data" });
+  }
+});
+
+app.get("/trips/:tripId", async (req, res) => {
+  try {
+    const trip = await Trip.findOne({ id: req.params.tripId });
+    if (trip) {
+      res.send(trip);
+    } else {
+      res.status(404).send({ error: "Trip not found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ error: "An error occurred while fetching the trip" });
+  }
+});
+
+app.delete("/trips/:tripId", async (req, res) => {
+  try {
+    const trip = await Trip.findOneAndDelete({ id: req.params.tripId });
+    if (trip) {
+      res.send({ message: "Trip deleted" });
+    } else {
+      res.status(404).send({ error: "Trip not found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ error: "An error occurred while deleting the trip" });
   }
 });
 
