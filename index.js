@@ -68,14 +68,13 @@ app.post("/result", async (req, res) => {
   const types = ["car", "bike", "foot"];
 
   try {
-    const responses = await Promise.all(
+    const profiles = await Promise.all(
       types.map((type) =>
         axios.get(
           `https://graphhopper.com/api/1/route?point=${origin.lat},${origin.lng}&point=${lat},${lng}&locale=en&key=${process.env.GRAPHHOPPER_API_KEY}&profile=${type}`
         )
       )
-    );
-    const profiles = responses.map((res, index) => ({
+    ).map((res, index) => ({
       distance: (res.data.paths[0].distance / 1000).toFixed(2),
       time: res.data.paths[0].time / 60000,
       profile: types[index],
