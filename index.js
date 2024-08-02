@@ -119,9 +119,20 @@ app.post("/dashboard", async (req, res) => {
   }
 });
 
+app.get("/dashboard", async (req, res) => {
+  try {
+    const trips = await Trip.find();
+    res.send(trips);
+  } catch (error) {
+    res
+      .status(500)
+      .send({ error: "An error occurred while fetching the dashboard data" });
+  }
+});
+
 app.get("/trips/:tripId", async (req, res) => {
   try {
-    const trip = await Trip.findOne({ id: req.params.tripId });
+    const trip = await Trip.findOne({ _id: req.params.tripId });
     if (trip) {
       res.send(trip);
     } else {
